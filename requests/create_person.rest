@@ -2,5 +2,23 @@ POST http://localhost:3001/api/persons
 Content-Type: application/json
 
 {
-"name": "Jean-Claude Dusse", "number": "01 40 30 20 10"
+    "name": "Jean-Claude Dusse",
+    "number": "01 40 30 20 10"
+}
+
+###
+POST http://localhost:3001/api/persons 
+Content-Type: application/json
+
+{
+    "name": "Gilbert Seldman"
+}
+
+###
+POST http://localhost:3001/api/persons 
+Content-Type: application/json
+
+{
+    "name": "Jean-Claude Dusse",
+    "number": "123-456-7890"
 }
