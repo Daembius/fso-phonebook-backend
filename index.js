@@ -1,5 +1,22 @@
 const express = require('express')
+const morgan = require('morgan')
+
 const app = express()
+
+// Define a custom token named body, 
+// which logs the request body in POST requests, 
+// by converting it into a string using JSON.stringify()
+morgan.token('body', (req) => JSON.stringify(req.body))
+
+// Configure Morgan to use the 'tiny' format and append the request body 
+// for POST requests.
+// This tells Morgan to log the HTTP method, URL, 
+// status code, content length, response time, and the custom body token.
+app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
+
+// alternative solution
+// morgan.format('tiny-with-body', ':method :url :status :res[content-length] - :response-time ms :body')
+// app.use(morgan('tiny-with-body'))
 
 app.use(express.json())
 
