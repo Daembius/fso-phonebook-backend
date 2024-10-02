@@ -2,9 +2,9 @@ const express = require('express')
 const morgan = require('morgan')
 const cors = require('cors')
 
-app.use(cors())
-
 const app = express()
+
+app.use(cors())
 
 // Define a custom token named body, 
 // which logs the request body in POST requests, 
@@ -22,6 +22,7 @@ app.use(morgan(':method :url :status :res[content-length] - :response-time ms :b
 // app.use(morgan('tiny-with-body'))
 
 app.use(express.json())
+app.use(express.static('dist'))
 
 let persons = [
     {
