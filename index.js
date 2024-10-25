@@ -29,7 +29,7 @@ const mongoose = require('mongoose')
 const password = process.argv[2]
 
 // DO NOT SAVE YOUR PASSWORD TO GITHUB!!
-const url = `mongodb+srv://jumay:${password}@cluster0.qif4b.mongodb.net/phonebookApp?retryWrites=true&w=majority&appName=Cluster0`;
+const url = process.env.MONGODB_URI;
 
 mongoose.set('strictQuery', false)
 mongoose.connect(url)
@@ -64,14 +64,14 @@ let persons = [
     }
 ]
 
-app.get('/', (request, response) => {
-    response.send('<h1>Hello World!</h1>')
-})
+// Handler to display info of all the people
+app.get('/api/notes', (request, response) => {
+    Note.find({}).then(notes => {
+      response.json(notes)
+    })
+  })
 
-app.get('/api/persons', (request, response) => {
-    response.json(persons)
-})
-
+// Handler to display person info by id
 app.get('/api/persons/:id', (request, response) => {
     const id = request.params.id
     const person = persons.find(person => person.id === id)
@@ -91,6 +91,7 @@ app.get('/info', (request, response) => {
         `)
 })
 
+// Delete a person by id
 app.delete('/api/persons/:id', (request, response) => {
     const id = request.params.id
     persons = persons.filter(person => person.id !== id)
@@ -106,6 +107,7 @@ const generateId = () => {
     return newId;
 }
 
+// Create person entry
 app.post('/api/persons', (request, response) => {
     const body = request.body
 
