@@ -24,6 +24,23 @@ app.use(morgan(':method :url :status :res[content-length] - :response-time ms :b
 app.use(express.json())
 app.use(express.static('dist'))
 
+const mongoose = require('mongoose')
+
+const password = process.argv[2]
+
+// DO NOT SAVE YOUR PASSWORD TO GITHUB!!
+const url = `mongodb+srv://jumay:${password}@cluster0.qif4b.mongodb.net/phonebookApp?retryWrites=true&w=majority&appName=Cluster0`;
+
+mongoose.set('strictQuery', false)
+mongoose.connect(url)
+
+const personSchema = new mongoose.Schema({
+    name: String,
+    number: String,
+});
+
+const Person = mongoose.model('Note', personSchema)
+
 let persons = [
     {
         "id": "1",
