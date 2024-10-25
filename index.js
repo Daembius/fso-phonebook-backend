@@ -1,3 +1,8 @@
+// Load environment variables from .env file
+require('dotenv').config();
+
+const Note = require('./models/note')
+
 const express = require('express')
 const morgan = require('morgan')
 const cors = require('cors')
@@ -16,7 +21,6 @@ morgan.token('body', (req) => JSON.stringify(req.body))
 // This tells Morgan to log the HTTP method, URL, 
 // status code, content length, response time, and the custom body token.
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
-
 // alternative solution
 // morgan.format('tiny-with-body', ':method :url :status :res[content-length] - :response-time ms :body')
 // app.use(morgan('tiny-with-body'))
@@ -24,52 +28,18 @@ app.use(morgan(':method :url :status :res[content-length] - :response-time ms :b
 app.use(express.json())
 app.use(express.static('dist'))
 
-const mongoose = require('mongoose')
-
 const password = process.argv[2]
 
-// DO NOT SAVE YOUR PASSWORD TO GITHUB!!
-const url = process.env.MONGODB_URI;
+const Person = mongoose.model('Person', personSchema)
 
-mongoose.set('strictQuery', false)
-mongoose.connect(url)
-
-const personSchema = new mongoose.Schema({
-    name: String,
-    number: String,
-});
-
-const Person = mongoose.model('Note', personSchema)
-
-let persons = [
-    {
-        "id": "1",
-        "name": "Arto Hellas",
-        "number": "040-123456"
-    },
-    {
-        "id": "2",
-        "name": "Ada Lovelace",
-        "number": "39-44-5323523"
-    },
-    {
-        "id": "3",
-        "name": "Dan Abramov",
-        "number": "12-43-234345"
-    },
-    {
-        "id": "4",
-        "name": "Mary Poppendieck",
-        "number": "39-23-6423122"
-    }
-]
+let persons = []
 
 // Handler to display info of all the people
-app.get('/api/notes', (request, response) => {
-    Note.find({}).then(notes => {
-      response.json(notes)
+app.get('/api/persons', (request, response) => {
+    Person.find({}).then(persons => {
+        response.json(persons)
     })
-  })
+})
 
 // Handler to display person info by id
 app.get('/api/persons/:id', (request, response) => {
@@ -135,7 +105,7 @@ app.post('/api/persons', (request, response) => {
     response.json(person)
 })
 
-const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`)
 })
