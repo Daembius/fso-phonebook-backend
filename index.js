@@ -1,7 +1,7 @@
 // Load environment variables from .env file
 require('dotenv').config();
 
-const Note = require('./models/note')
+const Person = require('./models/person')
 
 const express = require('express')
 const morgan = require('morgan')
@@ -30,9 +30,7 @@ app.use(express.static('dist'))
 
 const password = process.argv[2]
 
-const Person = mongoose.model('Person', personSchema)
-
-let persons = []
+// let persons = []
 
 // Handler to display info of all the people
 app.get('/api/persons', (request, response) => {
@@ -69,40 +67,39 @@ app.delete('/api/persons/:id', (request, response) => {
     response.status(204).end()
 })
 
-const generateId = () => {
-    let newId;
-    do {
-        newId = Math.floor(Math.random() * 1000000);
-    } while (persons.find(person => person.id === newId));
-    return newId;
-}
-
-// Create person entry
+// create person entry
 app.post('/api/persons', (request, response) => {
+    console.log('POST /api/persons route hit')
     const body = request.body
+    console.log('Received POST request with body:', body) 
 
     if (!body.name || !body.number) {
         return response.status(400).json({
-            error: 'name and number are required'
+            error: "name and number are required"
         })
     }
 
-    const existingPerson = persons.find(person => person.name === body.name)
-    if (existingPerson) {
-        return response.status(400).json({
-            error: 'name must be unique'
-        })
-    }
-
-    const person = {
+    const person = new Person({
         name: body.name,
-        number: body.number,
-        id: generateId(),
-    }
+        number: body.number
+    })
 
-    persons = persons.concat(person)
-
-    response.json(person)
+    person.save()
+        .then(savedPerson => {
+            console.log('Person saved successfully:', savedPerson)
+            response.json(savedPerson)
+        })
+        .catch(error => {
+            console.log('Error saving person:', error)
+            // Check if this is a duplicate key error
+            if (error.code === 11000) { // MongoDB's error code for duplicate key
+                return response.status(400).json({
+                    error: "name must be unique"
+                })
+            }
+            // Handle other potential errors
+            response.status(500).json({ error: 'somehting went wrong' })
+        })
 })
 
 const PORT = process.env.PORT

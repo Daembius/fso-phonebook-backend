@@ -17,8 +17,11 @@ mongoose.connect(url)
     })
 
 const personSchema = new mongoose.Schema({
-    name: String,
-    number: String,
+    name: {
+        type: String,
+        unique: true  // This makes the name field unique
+    },
+    number: String
 });
 
 personSchema.set('toJSON', {
@@ -30,4 +33,4 @@ personSchema.set('toJSON', {
 })
 
 
-module.exports = mongoose.model('Note', noteSchema)
+module.exports = mongoose.model('Person', personSchema)

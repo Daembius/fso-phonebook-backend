@@ -27,3 +27,4 @@ Thumbs.db
 *.pid
 *.seed
 *.pid.lock
+scratch.js
