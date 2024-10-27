@@ -5,7 +5,8 @@ const Person = require('./models/person')
 
 const express = require('express')
 const morgan = require('morgan')
-const cors = require('cors')
+const cors = require('cors');
+const person = require('./models/person');
 
 const app = express()
 
@@ -30,8 +31,6 @@ app.use(express.static('dist'))
 
 const password = process.argv[2]
 
-// let persons = []
-
 // Handler to display info of all the people
 app.get('/api/persons', (request, response) => {
     Person.find({}).then(persons => {
@@ -41,15 +40,21 @@ app.get('/api/persons', (request, response) => {
 
 // Handler to display person info by id
 app.get('/api/persons/:id', (request, response) => {
-    const id = request.params.id
-    const person = persons.find(person => person.id === id)
-
-    if (person) {
-        response.json(person)
-    } else {
-        response.status(404).end()
-    }
-})
+    Person.findById(request.params.id)
+      .then(person => {
+  
+        if (person) {
+          response.json(person)
+        } else {
+          response.status(404).end()
+        }
+      })
+  
+      .catch(error => {
+        console.log(error)
+        response.status(400).send({ error: 'malformatted id' })
+      })
+  })
 
 app.get('/info', (request, response) => {
     const date = new Date()
