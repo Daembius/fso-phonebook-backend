@@ -28,3 +28,4 @@ Thumbs.db
 *.seed
 *.pid.lock
 scratch.js
+order.js

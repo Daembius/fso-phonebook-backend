@@ -1,43 +1,32 @@
+//*** IMPORTS ***//
+const express = require('express')
+const app = express()
 // Load environment variables from .env file
 require('dotenv').config();
-
 const Person = require('./models/person')
-
-const express = require('express')
-const morgan = require('morgan')
 const cors = require('cors');
+const morgan = require('morgan')
 
-const app = express()
-
+//*** MIDDLEWARE ***//
+app.use(express.static('dist'))
+app.use(express.json())
 app.use(cors())
 
-// Define a custom token named body, 
-// which logs the request body in POST requests, 
-// by converting it into a string using JSON.stringify()
+// Morgan setup
 morgan.token('body', (req) => JSON.stringify(req.body))
-
-// Configure Morgan to use the 'tiny' format and append the request body 
-// for POST requests.
-// This tells Morgan to log the HTTP method, URL, 
-// status code, content length, response time, and the custom body token.
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
-// alternative solution
-// morgan.format('tiny-with-body', ':method :url :status :res[content-length] - :response-time ms :body')
-// app.use(morgan('tiny-with-body'))
 
-app.use(express.json())
-app.use(express.static('dist'))
+//*** ROUTES ***//
 
-const password = process.argv[2]
-
-// Handler to display info of all the people
+// GET routes
+// Display info of all the people
 app.get('/api/persons', (request, response) => {
   Person.find({}).then(persons => {
     response.json(persons)
   })
 })
 
-// Handler to display person info by id
+// Display person info by id
 app.get('/api/persons/:id', (request, response, next) => {
   Person.findById(request.params.id)
     .then(person => {
@@ -52,14 +41,6 @@ app.get('/api/persons/:id', (request, response, next) => {
     .catch(error => next(error))
 })
 
-// app.get('/info', (request, response) => {
-//   const date = new Date()
-//   response.send(`
-//         <p>Phonebook has info for ${persons.length} people</p>
-//         <p>${date.toString()}</p>
-//         `)
-// })
-
 app.get('/info', (request, response, next) => {
   const date = new Date()
   Person.countDocuments({})
@@ -72,7 +53,7 @@ app.get('/info', (request, response, next) => {
     .catch(error => next(error))
 })
 
-// Delete a person by id
+// DELETE route
 app.delete('/api/persons/:id', (request, response, next) => {
   Person.findByIdAndDelete(request.params.id)
     .then(result => {
@@ -81,11 +62,10 @@ app.delete('/api/persons/:id', (request, response, next) => {
     .catch(error => next(error))
 })
 
-// create person entry
-app.post('/api/persons', (request, response) => {
-  console.log('POST /api/persons route hit')
+// POST route
+// Create person entry
+app.post('/api/persons', (request, response, next) => {
   const body = request.body
-  console.log('Received POST request with body:', body)
 
   if (!body.name || !body.number) {
     return response.status(400).json({
@@ -100,22 +80,21 @@ app.post('/api/persons', (request, response) => {
 
   person.save()
     .then(savedPerson => {
-      console.log('Person saved successfully:', savedPerson)
       response.json(savedPerson)
     })
     .catch(error => {
-      console.log('Error saving person:', error)
       // Check if this is a duplicate key error
       if (error.code === 11000) { // MongoDB's error code for duplicate key
         return response.status(400).json({
           error: "name must be unique"
         })
       }
-      // Handle other potential errors
-      response.status(500).json({ error: 'somehting went wrong' })
+      // Pass any other errors to the error handling middleware
+      next(error)
     })
 })
 
+// PUT route
 // Update the phone number of an existing entry
 app.put('/api/persons/:id', (request, response, next) => {
   const body = request.body
@@ -132,38 +111,29 @@ app.put('/api/persons/:id', (request, response, next) => {
     .catch(error => next(error))
 })
 
+//*** ERROR HANDLING ***//
 const unknownEndpoint = (request, response) => {
   response.status(404).send({ error: 'unknown endpoint' })
 }
-
-// handler of requests with unknown endpoint
-app.use(unknownEndpoint)
-
-// const errorHandler = (error, request, response, next) => {
-//   console.error(error.message)
-
-//   if (error.name === 'CastError') {
-//     return response.status(400).send({ error: 'malformatted id' })
-//   }
-
-//   next(error)
-// }
 
 const errorHandler = (error, request, response, next) => {
   console.error(error.message)
 
   if (error.name === 'CastError') {
     return response.status(400).send({ error: 'malformatted id' })
+
   } else if (error.name === 'ValidationError') {
     return response.status(400).json({ error: error.message })
   }
 
-  response.status(500).json({ error: 'Something went wrong' })
+  next(error)
 }
 
-// Handler of requests with wrong id
-app.use(errorHandler)
+// Apply error handling middleware
+app.use(unknownEndpoint)  // Handle unknown endpoints
+app.use(errorHandler)      // Handle errors
 
+//*** SERVER ***//
 const PORT = process.env.PORT
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)

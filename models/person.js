@@ -19,6 +19,7 @@ mongoose.connect(url)
 const personSchema = new mongoose.Schema({
     name: {
         type: String,
+        minLength: 3,
         unique: true  // This makes the name field unique
     },
     number: String
