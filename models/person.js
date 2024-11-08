@@ -2,9 +2,7 @@ const mongoose = require('mongoose')
 
 mongoose.set('strictQuery', false)
 
-
 const url = process.env.MONGODB_URI
-
 
 console.log('connecting to', url)
 
@@ -22,7 +20,22 @@ const personSchema = new mongoose.Schema({
         minLength: 3,
         unique: true  // This makes the name field unique
     },
-    number: String
+    number: {
+        type: String,
+        minLength: 8,
+        validate: {
+            validator: function (v) {
+                // This regex will:
+                // 1. Match 2 or 3 digits at the start (^\\d{2,3})
+                // 2. Followed by a hyphen (-)
+                // 3. Followed by numbers (\\d+)
+                // 4. And nothing else ($)
+                return /^(\d{2,3})-(\d+)$/.test(v);
+            },
+            message: props => `${props.value} is not a valid phone number! Phone number must be in format: XX-XXXXXX or XXX-XXXXX where X is a number`
+        },
+        required: [true, 'User phone number required']
+    }
 });
 
 personSchema.set('toJSON', {
@@ -32,6 +45,5 @@ personSchema.set('toJSON', {
         delete returnedObject.__v
     }
 })
-
 
 module.exports = mongoose.model('Person', personSchema)
