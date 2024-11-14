@@ -2,9 +2,9 @@
 const express = require('express')
 const app = express()
 // Load environment variables from .env file
-require('dotenv').config();
+require('dotenv').config()
 const Person = require('./models/person')
-const cors = require('cors');
+const cors = require('cors')
 const morgan = require('morgan')
 
 //*** MIDDLEWARE ***//
@@ -55,8 +55,8 @@ app.get('/info', (request, response, next) => {
 
 // DELETE route
 app.delete('/api/persons/:id', (request, response, next) => {
-  Person.findByIdAndDelete(request.params.id)
-    .then(result => {
+  Person.findByIdAndRemove(request.params.id)
+    .then(() => {
       response.status(204).end()
     })
     .catch(error => next(error))
@@ -69,7 +69,7 @@ app.post('/api/persons', (request, response, next) => {
 
   if (!body.name || !body.number) {
     return response.status(400).json({
-      error: "name and number are required"
+      error: 'name and number are required'
     })
   }
 
@@ -86,7 +86,7 @@ app.post('/api/persons', (request, response, next) => {
       // Check if this is a duplicate key error
       if (error.code === 11000) { // MongoDB's error code for duplicate key
         return response.status(400).json({
-          error: "name must be unique"
+          error: 'name must be unique'
         })
       }
       // Pass any other errors to the error handling middleware
